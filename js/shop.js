@@ -1,3 +1,4 @@
+import{extras,available}from'./catalog.js';
 export const foods=[
 {id:'coffee',name:'Café coado',emoji:'☕',price:8,effects:{energy:22,food:8},description:'+22 energia · +8 fome'},
 {id:'cheese',name:'Pão de queijo',emoji:'🧀',price:12,effects:{food:30,fun:5},description:'+30 fome · +5 diversão'},
@@ -27,6 +28,6 @@ export const items=[
 {id:'rug',name:'Tapete de histórias',emoji:'🟫',category:'Decoração',price:85},
 {id:'map',name:'Mapa antigo',emoji:'🗺️',category:'Decoração',price:2,rare:true},
 {id:'globe',name:'Globo de aventuras',emoji:'🌍',category:'Decoração',price:110},
-{id:'ladder',name:'Escada de biblioteca',emoji:'🪜',category:'Decoração',price:125}];
-export function purchase(state,item){if(state.owned.includes(item.id))return false;const key=item.rare?'markers':'coins';if(state[key]<item.price)return false;state[key]-=item.price;state.owned.push(item.id);return true;}
+{id:'ladder',name:'Escada de biblioteca',emoji:'🪜',category:'Decoração',price:125},...extras];
+export function purchase(state,item){if(!available(item)||(!item.consumable&&state.owned.includes(item.id)))return false;const key=item.rare?'markers':'coins';if(state[key]<item.price)return false;state[key]-=item.price;if(item.consumable)state.inventory[item.id]=Math.min(999,(state.inventory[item.id]||0)+1);else state.owned.push(item.id);return true;}
 export function equip(state,item){if(!state.owned.includes(item.id))return;if(item.category==='Decoração'){if(state.decorations.includes(item.id))state.decorations=state.decorations.filter(x=>x!==item.id);else state.decorations.push(item.id);}else if(state.equipped[item.slot]===item.id)delete state.equipped[item.slot];else state.equipped[item.slot]=item.id;}

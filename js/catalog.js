@@ -1,0 +1,28 @@
+import{weekNumber}from'./progression.js';
+export const extras=[
+{id:'hair-wave',name:'Cabelo ondulado',emoji:'〰️',category:'Penteados',slot:'hair',price:90},
+{id:'hair-classic',name:'Penteado clássico',emoji:'💈',category:'Penteados',slot:'hair',price:80},
+{id:'hair-silver',name:'Prata da biblioteca',emoji:'⚪',category:'Cores de cabelo',slot:'hairColor',price:90},
+{id:'hair-copper',name:'Cobre de outono',emoji:'🟠',category:'Cores de cabelo',slot:'hairColor',price:90},
+{id:'round-glasses',name:'Óculos redondos',emoji:'👓',category:'Acessórios',slot:'glasses',price:100},
+{id:'blue-glasses',name:'Armação azul',emoji:'🕶️',category:'Acessórios',slot:'glasses',price:110},
+{id:'winter-hat',name:'Gorro de inverno',emoji:'🧶',category:'Roupas',slot:'hat',price:95},
+{id:'victorian',name:'Colete vitoriano',emoji:'🎩',category:'Fantasias',slot:'body',price:180},
+{id:'pirate',name:'Pirata de mapas',emoji:'🏴‍☠️',category:'Fantasias',slot:'body',price:170},
+{id:'astronaut',name:'Astronauta da biblioteca',emoji:'🚀',category:'Fantasias',slot:'body',price:200},
+{id:'detective',name:'Detetive de romances',emoji:'🕵️',category:'Fantasias',slot:'body',price:180},
+{id:'season-summer',name:'Camisa de verão',emoji:'🌞',category:'Sazonais',slot:'body',price:110,months:[11,0,1]},
+{id:'season-autumn',name:'Casaco de outono',emoji:'🍂',category:'Sazonais',slot:'body',price:110,months:[2,3,4]},
+{id:'season-winter',name:'Tricô de inverno',emoji:'❄️',category:'Sazonais',slot:'body',price:110,months:[5,6,7]},
+{id:'season-spring',name:'Colete de primavera',emoji:'🌼',category:'Sazonais',slot:'body',price:110,months:[8,9,10]},
+{id:'rare-moon',name:'Manto da lua',emoji:'🌙',category:'Rotação semanal',slot:'body',price:3,rare:true,rotation:0},
+{id:'rare-forest',name:'Manto da floresta',emoji:'🌿',category:'Rotação semanal',slot:'body',price:3,rare:true,rotation:1},
+{id:'rare-stars',name:'Manto das estrelas',emoji:'✨',category:'Rotação semanal',slot:'body',price:3,rare:true,rotation:2},
+{id:'snack',name:'Petiscos dos pets',emoji:'🍘',category:'Suprimentos',price:5,consumable:true},
+{id:'paper',name:'Papel velho para traça',emoji:'📜',category:'Suprimentos',price:4,consumable:true},
+{id:'eraser',name:'Borracha de margens',emoji:'🧽',category:'Suprimentos',price:15,consumable:true},
+{id:'care-serum',name:'Elixir de boas histórias',emoji:'🧴',category:'Suprimentos',price:90,consumable:true},
+{id:'event-flowers',name:'Guirlanda literária',emoji:'🌸',category:'Decoração',eventOnly:true},
+{id:'event-lights',name:'Luzes de leitura',emoji:'✨',category:'Decoração',eventOnly:true},
+{id:'event-decimal',name:'Estandarte 000',emoji:'🔢',category:'Decoração',eventOnly:true}];
+export function available(item,now=Date.now()){if(item.eventOnly)return false;if(item.months&&!item.months.includes(new Date(now).getMonth()))return false;if(item.rotation!==undefined&&item.rotation!==((weekNumber(now)%3)+3)%3)return false;return true;}
