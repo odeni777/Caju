@@ -17,7 +17,10 @@ Abra a porta 3000 no navegador pelo acesso oferecido pelo seu ambiente de desenv
 
 - As cinco barras mostram saciedade, higiene, energia, diversão e saúde.
 - Alimentação inclui café, pão de queijo, polvilho, maçã, bolo de rolo, Cookie Decimal e chá gratuito que recupera toda a saúde.
-- Banho traz espuma e patinho; dormir escurece a sala e recupera energia ao longo do tempo. O botão Dormir vira Acordar.
+- Alimentar fecha o menu para mostrar a boca abrindo e mastigando; bebidas têm animação de gole.
+- No banho, arraste o sabão sobre o Caju com mouse ou toque. O botão Esfregar sabão também funciona por teclado. A higiene só é recuperada ao completar a barra; cancelar não concede a recompensa.
+- Dormir fecha os olhos, escurece a sala e adiciona respiração suave, recuperando energia ao longo do tempo. O botão Dormir vira Acordar.
+- O botão ♪ ativa sons diferentes para mastigar, beber, esfregar, enxaguar, dormir, acordar e fazer carinho. A preferência fica salva, e silenciar interrompe os sons em andamento.
 - Cinco minigames: resumo literário (30 obras), classificação decimal, anotação cronometrada, memória de capas e labirinto com teclado/botões.
 - Moedas vêm das partidas e de intervalos de dois minutos; marcadores vêm de resultados difíceis, conquistas e rituais diários. A primeira partida rende uma conquista.
 - Compre itens na loja e equipe ou retire roupas, acessórios e decorações no guarda-roupa. Peças de um mesmo tipo substituem a anterior.
@@ -28,6 +31,9 @@ Abra a porta 3000 no navegador pelo acesso oferecido pelo seu ambiente de desenv
 - `index.html`, `style.css`: interface responsiva, sala ilustrada em CSS, acessibilidade e animações.
 - `js/app.js`: eventos, interface e integração.
 - `js/character.js`: imagens do Carlos, falas e estados visuais.
+- `js/wardrobe.js`: roupas, acessórios e expressões em SVG, nas coordenadas do retrato original (1254 × 1254).
+- `js/care.js`: alimentação animada e banho com Pointer Events (mouse e toque), com alternativa por teclado.
+- `js/sound.js`: efeitos de áudio sintetizados com Web Audio, sem arquivos ou serviços externos.
 - `js/attributes.js`: passagem do tempo, sono e rituais.
 - `js/save.js`: normalização, persistência e recuperação de saves.
 - `js/shop.js`: catálogo, efeitos e compras.
@@ -40,7 +46,7 @@ Abra a porta 3000 no navegador pelo acesso oferecido pelo seu ambiente de desenv
 
 Substitua `assets/carlos.png` por uma fotografia ou arte autorizada. Em `js/character.js`, o objeto `characterImages` permite definir uma imagem para cada estado; `null` reutiliza a imagem base com efeitos. O retrato usa uma máscara suave em CSS. Fotos originais enviadas no chat serviram de referência para a ilustração; não foram incorporadas como arquivos separados.
 
-Itens usam o campo `emoji` em `js/shop.js`. Para arte própria, adicione um campo `image` e renderize um `<img>` no lugar do emoji nos cartões e camadas de personagem. Ajuste as classes `.wear` em `style.css` para o enquadramento do novo retrato.
+Itens usam o campo `emoji` em `js/shop.js` somente como ícone dos cartões. As peças vestidas são desenhadas por `outfitArt()` em `js/wardrobe.js`, no mesmo sistema de coordenadas da imagem. Ao substituir o retrato, ajuste também as coordenadas das peças e das expressões em `expressionArt()`. O palco permanece quadrado em todos os tamanhos de tela para evitar deslocamentos.
 
 ## Adicionar livros
 
@@ -60,8 +66,9 @@ Use quatro opções únicas. O jogo sorteia cinco obras por rodada e dá bônus 
 npm test
 # Com o servidor ativo e Playwright Python instalado:
 python3 tests/browser_smoke.py
+python3 tests/care_browser.py
 ```
 
 ## Simplificações
 
-Roupas, acessórios e decorações são sobreposições de emojis, com prévia nos cartões; não são sprites personalizados por peça. Estados usam a ilustração base e filtros, efeitos e balões. As capas são tipográficas e a física de torre não foi incluída: os cinco jogos entregues são os listados acima. Não há login, compras reais ou serviço remoto. Sons suaves são sintetizados localmente após ativação. Não há service worker: o progresso persiste fechado, mas o carregamento offline não é garantido.
+Roupas e acessórios são desenhos vetoriais sobre o retrato; decorações e ícones dos cartões usam emojis. Expressões e mastigação são camadas vetoriais animadas, não reconstrução facial 3D. Estados usam a ilustração base, filtros, efeitos e balões. As capas são tipográficas e a física de torre não foi incluída: os cinco jogos entregues são os listados acima. Não há login, compras reais ou serviço remoto. Sons suaves são sintetizados localmente após ativação. Não há service worker: o progresso persiste fechado, mas o carregamento offline não é garantido.

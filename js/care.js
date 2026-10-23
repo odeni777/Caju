@@ -1,0 +1,19 @@
+import{expressionArt}from'./wardrobe.js';
+export function createCare({sound,onBathComplete,onBathCancel}){
+ const room=document.querySelector('#room'),character=document.querySelector('#character'),panel=document.querySelector('#care-panel'),soap=document.querySelector('#soap'),foam=document.querySelector('#bath-foam'),food=document.querySelector('#feeding-food');
+ document.querySelector('#expression-layer').innerHTML=expressionArt();
+ let bathing=false,eating=false,progress=0,lastPoint=null,lastSound=0,eatTimer,foamTimer;
+ function stopEating(){clearTimeout(eatTimer);eating=false;character.classList.remove('eating','drinking');food.className='';food.textContent='';}
+ function cancelBath(){if(!bathing)return;bathing=false;room.classList.remove('bathing');panel.hidden=true;soap.style.display='';foam.replaceChildren();lastPoint=null;onBathCancel?.();}
+ function stop(){stopEating();cancelBath();clearTimeout(foamTimer);foam.replaceChildren();}
+ function bubble(x,y){const b=document.createElement('span');b.className='soap-bubble';b.style.cssText=`left:${x}px;top:${y}px;--drift:${Math.random()*30-15}px;--size:${12+Math.random()*14}px`;foam.append(b);setTimeout(()=>b.remove(),1200);}
+ function scrub(amount,x,y){if(!bathing)return;progress=Math.min(100,progress+amount);document.querySelector('#bath-progress').value=progress;const r=room.getBoundingClientRect();soap.style.left=`${x-r.left}px`;soap.style.top=`${y-r.top}px`;for(let i=0;i<3;i++)bubble(x-r.left+(Math.random()-.5)*35,y-r.top+(Math.random()-.5)*35);if(performance.now()-lastSound>150){sound.play('scrub');lastSound=performance.now();}if(progress>=100){bathing=false;room.classList.remove('bathing');panel.hidden=true;soap.style.display='';lastPoint=null;sound.play('bath');onBathComplete();}}
+ function startBath(){stop();bathing=true;progress=0;panel.hidden=false;room.classList.add('bathing');document.querySelector('#bath-progress').value=0;const r=character.getBoundingClientRect(),rr=room.getBoundingClientRect();soap.style.left=`${r.left-rr.left+r.width*.7}px`;soap.style.top=`${r.top-rr.top+r.height*.6}px`;document.querySelector('#scrub-button').focus({preventScroll:true});}
+ function eat(item){stop();eating=true;const drink=['coffee','tea'].includes(item.id);character.classList.add('eating');character.classList.toggle('drinking',drink);food.textContent=item.emoji;const r=character.getBoundingClientRect(),rr=room.getBoundingClientRect();food.style.left=`${r.left-rr.left+r.width*.49}px`;food.style.top=`${r.top-rr.top+r.height*.412}px`;food.className=drink?'food-sip':'food-bite';sound.play(drink?'drink':'eat');eatTimer=setTimeout(stopEating,1800);}
+ character.addEventListener('pointerdown',e=>{if(!bathing)return;e.preventDefault();lastPoint={x:e.clientX,y:e.clientY};character.setPointerCapture(e.pointerId);});
+ character.addEventListener('pointermove',e=>{if(!bathing||!lastPoint)return;const r=character.getBoundingClientRect(),previous=lastPoint;lastPoint={x:e.clientX,y:e.clientY};if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)return;const distance=Math.hypot(e.clientX-previous.x,e.clientY-previous.y);if(distance<2)return;scrub(Math.min(8,distance/r.width*28),e.clientX,e.clientY);});
+ for(const event of ['pointerup','pointercancel','lostpointercapture'])character.addEventListener(event,()=>{lastPoint=null;});
+ document.querySelector('#scrub-button').onclick=()=>{const r=character.getBoundingClientRect();scrub(12,r.left+r.width*(.3+Math.random()*.4),r.top+r.height*(.3+Math.random()*.5));};
+ document.querySelector('#cancel-bath').onclick=cancelBath;
+ return{startBath,eat,stop,cancelBath,get bathing(){return bathing;},get eating(){return eating;}};
+}

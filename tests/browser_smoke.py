@@ -23,8 +23,10 @@ with sync_playwright() as p:
     page.get_by_role('button',name='Pão de queijo',exact=False).click()
     assert state()['stats']['food']>99
     assert state()['coins']==228
-    close()
+    assert not page.locator('#modal').is_visible()
+    assert page.locator('#character').evaluate('(el)=>el.classList.contains("eating")')
     page.locator('[data-action=bath]').click()
+    for _ in range(9): page.locator('#scrub-button').click()
     assert state()['stats']['hygiene']==100
     page.locator('[data-action=sleep]').click()
     assert state()['sleeping']

@@ -1,15 +1,16 @@
+import{outfitArt}from'./wardrobe.js';
 import{mood}from'./attributes.js';
 // Replace these paths with new photographs or illustrations; missing states reuse base.
 export const characterImages={base:'assets/carlos.png',happy:null,hungry:null,dirty:null,tired:null,sick:null,bored:null,sleeping:null};
 export const quotes=['Silêncio, por favor… meu coração está lendo.','Isso merece uma anotação na margem!','Devolva o livro até a data indicada. E volte para um café!','Você é meu capítulo favorito de hoje.','Um livro aberto é um abraço esperando acontecer.','Psiu… carinho liberado na biblioteca.'];
 export function renderCharacter(state,items){
- const m=mood(state);document.querySelector('#room').className='room '+m.id;
+ const m=mood(state);const room=document.querySelector('#room');for(const id of ['happy','sleeping','sick','hungry','dirty','tired','bored'])room.classList.toggle(id,id===m.id);
  document.querySelector('#portrait').src=characterImages[m.id]||characterImages.base;
  document.querySelector('#mood-label').textContent=m.label;
  document.querySelector('#state-badge').textContent=m.id==='happy'?'DE BEM COM A VIDA':m.label.toUpperCase();
  document.querySelector('#sleep-label').textContent=state.sleeping?'Acordar':'Dormir';
  const layer=document.querySelector('#outfit-layer');layer.replaceChildren();
- for(const [slot,id]of Object.entries(state.equipped)){const item=items.find(x=>x.id===id);if(!item||!state.owned.includes(id))continue;const el=document.createElement('span');el.className='wear '+slot;el.textContent=item.emoji;el.title=item.name;layer.append(el);}
+ for(const [slot,id]of Object.entries(state.equipped)){const item=items.find(x=>x.id===id);if(!item||!state.owned.includes(id))continue;const el=document.createElement('span');el.className='wear '+slot;el.innerHTML=outfitArt(item);el.dataset.item=item.id;el.title=item.name;layer.append(el);}
  const effect=document.querySelector('#effect-layer');if(!effect.dataset.temporary)effect.innerHTML=m.effect?`<span class="effect">${m.effect}</span>`:'';
  const deco=document.querySelector('#decoration-layer');deco.replaceChildren();for(const id of state.decorations){const item=items.find(x=>x.id===id);if(!item||!state.owned.includes(id))continue;const el=document.createElement('span');el.className='room-decoration';el.textContent=item.emoji;deco.append(el);}
  return m;
