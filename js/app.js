@@ -1,24 +1,28 @@
+import{createProfileStore,createProfilePicker}from'./profiles.js';
 import{createFeatures}from'./features.js';
 import{createMusic}from'./music.js';
 import{available}from'./catalog.js';
 import{createSound}from'./sound.js';
 import{createCare}from'./care.js';
 import{actionIcon}from'./icons.js';
-import{load,save,statKeys,storageMessage}from'./save.js';
+import{statKeys,storageMessage}from'./save.js';
 import{advance,changeStats,statMeta,mood,ritual}from'./attributes.js';
 import{renderCharacter,say,react,quotes,fillShelves}from'./character.js';
 import{foods,items,purchase,equip}from'./shop.js';
 import{createMinigames,games}from'./minigames.js';
 document.querySelectorAll('[data-action]').forEach(b=>b.querySelector('.action-icon').innerHTML=actionIcon(b.dataset.action));
-const state=load();advance(state);const $=s=>document.querySelector(s);const modal=$('#modal'),body=$('#modal-body'),title=$('#modal-title');
+let playerStorage,playerSession;try{playerStorage=window.localStorage;playerSession=window.sessionStorage;}catch{}
+const players=createProfileStore(playerStorage,playerSession);let profileReady=players.remembered;
+const state=players.load();advance(state);const $=s=>document.querySelector(s);const modal=$('#modal'),body=$('#modal-body'),title=$('#modal-title');
 let features,storageWarned=false;
 const sound=createSound(()=>state.sound,()=>state.settings.volume);
 const music=createMusic(()=>state.settings);
 function tone(ok=true){sound.play(ok?'success':'error');}
 const care=createCare({sound,onBathComplete(){changeStats(state,{hygiene:100,fun:8,health:3});completeRitual('bath');features?.event('bath');render();say('Limpinho! Até a poeira dos clássicos saiu.');react('bath');toast('Banho completo! Caju está limpinho.');},onBathCancel(){say('O sabão fica aqui para quando você quiser continuar.');}});
-function persist(){const ok=save(state);$('#save-status').textContent=ok?'✓ Progresso salvo':'⚠ Salvamento indisponível';if(!ok&&!storageWarned){storageWarned=true;toast('Não foi possível salvar neste navegador. Exporte seu progresso em Opções antes de sair.');}if(ok)storageWarned=false;}
+function persist(){if(!profileReady){$('#save-status').textContent='Escolha um jogador';return;}const ok=players.save(state);$('#save-status').textContent=ok?'✓ Progresso salvo':'⚠ Salvamento indisponível';if(!ok&&!storageWarned){storageWarned=true;toast('Não foi possível salvar neste navegador. Exporte seu progresso em Opções antes de sair.');}if(ok)storageWarned=false;}
 function toast(text){$('#toast').textContent=text;$('#toast').classList.add('visible');clearTimeout(toast.timer);toast.timer=setTimeout(()=>$('#toast').classList.remove('visible'),3200);}
 function render(){
+ $('#player-name').textContent=players.current.name;$('#player-button').setAttribute('aria-label',`Jogador: ${players.current.name}. Trocar jogador`);
  $('#coins').textContent=state.coins.toLocaleString('pt-BR');$('#markers').textContent=state.markers;
  $('#stats').innerHTML=statKeys.map(key=>{const m=statMeta[key],value=Math.round(state.stats[key]);return `<div class="stat" style="--bar:${m.color}"><div class="stat-heading"><span class="stat-symbol">${m.icon}</span><span>${m.name}</span><span class="stat-value">${value}<span style="opacity:.5">/100</span></span></div><div class="bar" role="progressbar" aria-label="${m.name}" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${value}"><span style="width:${value}%"></span></div></div>`;}).join('');
  const m=renderCharacter(state,items);$('#sound').classList.toggle('sound-on',state.sound);$('#sound').setAttribute('aria-label',state.sound?'Desligar sons':'Ligar sons');$('#sound').setAttribute('aria-pressed',String(state.sound));$('#sound').title=state.sound?'Desligar sons':'Ligar sons';
@@ -53,12 +57,15 @@ let lastPet=0;$('#character').onclick=()=>{if(care.bathing||care.eating)return;i
 $('#sound').onclick=()=>{state.sound=!state.sound;if(!state.sound)sound.mute();render();tone();toast(state.sound?'Sons suaves ligados':'Sons desligados');};
 function help(){open('Bem-vindo à sua biblioteca');body.innerHTML='<p>Este é o <strong>Caju</strong>, seu bibliotecário de bolso inspirado no Carlos Henrique Juvêncio. Os óculos, o cabelo e o retrato foram criados a partir das fotos enviadas.</p><p>Cuide da fome, higiene, energia, diversão e saúde. Alimente e veja o Caju mastigar. No banho, arraste o sabão sobre ele ou use Esfregar sabão. Deixe dormir e descubra histórias nos nove minigames. Toque no Caju para fazer carinho.</p><p>Ganhe moedas jogando ou com o tempo. Marcadores vêm de bons resultados, conquistas e dos três rituais diários. Roupas e decoração compradas ficam no guarda-roupa.</p><p>Ative os sons no botão ♪: cada cuidado tem seu próprio som. O progresso é salvo automaticamente neste navegador. A ausência conta por até quatro horas: o Caju pode adoecer, mas nunca morre. O chá de camomila é grátis e sempre cura.</p><p class="notice">A barra de Fome indica saciedade: quanto mais cheia, mais bem alimentado ele está. O sono recupera energia com o tempo, mesmo com o jogo fechado.</p>';}
 $('#help').onclick=help;$('#about').onclick=help;
-features=createFeatures({state,open,body,title,render,persist,toast,sound,music,care,items});
+features=createFeatures({state,open,body,title,render,persist,toast,sound,music,care,items,saveState:incoming=>players.save(incoming),getPlayerName:()=>players.current.name});
+const picker=createProfilePicker({store:players,onOpen(){care.stop();mini.stop();features.close();music.stop();sound.mute();if(modal.open)modal.close();},onSelect(id){if(profileReady){advance(state);if(!players.save(state))throw new Error('Não foi possível salvar seu progresso atual. Exporte uma cópia em Opções antes de trocar.');}features.voice.erase();const incoming=players.select(id);for(const key of Object.keys(state))delete state[key];Object.assign(state,incoming);advance(state);profileReady=true;lastPet=0;lastMood=mood(state).id;music.update();render();say(`Bem-vindo, ${players.current.name}! Vamos escrever mais um capítulo?`);},onRename(){render();}});
+$('#player-button').onclick=()=>picker.show();
 fillShelves();render();
 if(storageMessage)toast(storageMessage);
 const loading=document.querySelector('#loading-screen');Promise.race([document.querySelector('#portrait').decode().catch(()=>{}),new Promise(r=>setTimeout(r,2000))]).then(()=>{loading.classList.add('loaded');setTimeout(()=>loading.remove(),400);});
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();window.cajuInstallPrompt=e;});
 if('serviceWorker'in navigator)navigator.serviceWorker.register('./sw.js').catch(()=>toast('O modo offline não está disponível neste navegador.'));
+if(!profileReady)picker.show(true);
 const initial=mood(state);if(initial.id!=='happy')say(initial.speech);
-let lastMood=initial.id;setInterval(()=>{advance(state);const m=render();if(m.id!==lastMood){say(m.speech);lastMood=m.id;}},5000);
-function checkpoint(){advance(state);persist();}window.addEventListener('pagehide',checkpoint);document.addEventListener('visibilitychange',()=>{if(document.hidden)checkpoint();else{advance(state);render();}});
+let lastMood=initial.id;setInterval(()=>{if(!profileReady)return;advance(state);const m=render();if(m.id!==lastMood){say(m.speech);lastMood=m.id;}},5000);
+function checkpoint(){if(profileReady){advance(state);persist();}}window.addEventListener('pagehide',checkpoint);document.addEventListener('visibilitychange',()=>{if(document.hidden)checkpoint();else if(profileReady){advance(state);render();}});

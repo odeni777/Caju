@@ -29,6 +29,6 @@ export function normalize(raw,now=Date.now()){
 }
 // localStorage can be unavailable in private contexts. Gameplay remains usable in memory.
 export let storageMessage='';
-export function load(){try{const raw=localStorage.getItem(SAVE_KEY);return raw?normalize(JSON.parse(raw)):freshState();}catch{storageMessage='Não foi possível ler o progresso. Você pode jogar e importar uma cópia nas opções.';return freshState();}}
+export function load(key=SAVE_KEY,storage){try{const raw=(storage??globalThis.localStorage).getItem(key);return raw?normalize(JSON.parse(raw)):freshState();}catch{storageMessage='Não foi possível ler o progresso. Você pode jogar e importar uma cópia nas opções.';return freshState();}}
 export function parseBackup(text){if(text.length>2000000)throw new Error('Arquivo muito grande. Use um backup do Caju de até 2 MB.');let raw;try{raw=JSON.parse(text);}catch{throw new Error('O arquivo não é um backup válido.');}if(raw?.game==='caju-biblioteca')raw=raw.state;if(!raw||raw.version!==1||!raw.stats||!Number.isFinite(raw.coins)||!Number.isFinite(raw.lastSeen))throw new Error('Este arquivo não contém um progresso válido do Caju.');return normalize(raw);}
-export function save(state){try{localStorage.setItem(SAVE_KEY,JSON.stringify(state));return true;}catch{return false;}}
+export function save(state,key=SAVE_KEY,storage){try{(storage??globalThis.localStorage).setItem(key,JSON.stringify(state));return true;}catch{return false;}}

@@ -6,6 +6,7 @@ with sync_playwright() as p:
  context=b.new_context(viewport={'width':390,'height':844},is_mobile=True,has_touch=True,permissions=['microphone'],accept_downloads=True)
  page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
  page.add_init_script('''if(navigator.mediaDevices){const real=navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);window.micRequests=0;navigator.mediaDevices.getUserMedia=async opts=>{window.micRequests++;const stream=await real(opts);window.testStream=stream;return stream;};}''')
+ page.add_init_script("sessionStorage.setItem('caju-current-player','main')")
  page.goto('http://127.0.0.1:3000');page.wait_for_selector('.stat');page.get_by_role('button',name='Entendi!',exact=True).click()
  # Seed a rich save before app initialization, without racing pagehide's autosave.
  page.add_init_script('''if(!sessionStorage.getItem('seeded-expansion')){const s=JSON.parse(localStorage.getItem('caju-biblioteca-v1'));s.coins=3000;s.markers=20;s.world.mess=4;s.world.notes=3;s.world.createdAt=Date.now()-8*604800000;localStorage.setItem('caju-biblioteca-v1',JSON.stringify(s));sessionStorage.setItem('seeded-expansion','1');}''')

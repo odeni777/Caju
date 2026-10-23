@@ -7,7 +7,10 @@ with sync_playwright() as p:
   if failure=='denied':page.add_init_script("navigator.mediaDevices.getUserMedia=()=>Promise.reject(new DOMException('Denied','NotAllowedError'))")
   if failure=='unsupported':page.add_init_script("window.MediaRecorder=undefined")
   if failure=='storage':page.add_init_script("Storage.prototype.setItem=function(){throw new DOMException('Quota','QuotaExceededError')}")
-  page.goto('http://127.0.0.1:3000');page.wait_for_selector('.stat');page.get_by_role('button',name='Entendi!',exact=True).click()
+  page.add_init_script("try{sessionStorage.setItem('caju-current-player','main')}catch{}")
+  page.goto('http://127.0.0.1:3000');page.wait_for_selector('.stat')
+  if page.locator('#profile-picker').is_visible():page.locator('[data-player="main"]').click()
+  page.get_by_role('button',name='Entendi!',exact=True).click()
   if failure=='storage':
    assert 'indisponível' in page.locator('#save-status').inner_text()
    page.locator('[data-action=bath]').click();page.locator('#cancel-bath').click()

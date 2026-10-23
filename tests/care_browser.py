@@ -8,6 +8,7 @@ with sync_playwright() as p:
   page=context.new_page();errors=[];page.on('pageerror',lambda e:errors.append(str(e)))
   # Record actual Web Audio node starts, not calls to a stubbed sound module.
   page.add_init_script('''window.audioStarts=0;for(const klass of [OscillatorNode,AudioBufferSourceNode]){const start=klass.prototype.start;klass.prototype.start=function(...args){window.audioStarts++;return start.apply(this,args);};}''')
+  page.add_init_script("sessionStorage.setItem('caju-current-player','main')")
   page.goto('http://127.0.0.1:3000');page.wait_for_selector('.stat')
   page.add_init_script('''if(!sessionStorage.getItem('seeded')){const s=JSON.parse(localStorage.getItem('caju-biblioteca-v1'));s.coins=1000;s.owned=['glasses','bow','pajamas','beret'];s.equipped={glasses:'glasses',neck:'bow',body:'pajamas',hat:'beret'};s.stats.hygiene=20;localStorage.setItem('caju-biblioteca-v1',JSON.stringify(s));sessionStorage.setItem('seeded','1');}''');page.reload();page.wait_for_selector('.wear.glasses svg')
   for slot in ['glasses','neck','body','hat']:

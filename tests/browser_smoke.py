@@ -8,6 +8,7 @@ with sync_playwright() as p:
     page=browser.new_page(viewport={'width':1440,'height':1100},device_scale_factor=1)
     errors=[]
     page.on('pageerror',lambda error:errors.append(str(error)))
+    page.add_init_script("sessionStorage.setItem('caju-current-player','main')")
     page.goto('http://127.0.0.1:3000')
     page.wait_for_selector('.stat')
     page.screenshot(path='/tmp/caju-desktop.png',full_page=True)

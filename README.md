@@ -73,11 +73,19 @@ Cada um tem instruções, pontuação, resultado, reação do Caju e recompensas
 
 Fechar uma partida cancela timers, animações e listeners, sem conceder a recompensa final.
 
+## Jogadores e saves separados
+
+Na primeira abertura de uma aba, escolha um jogador ou crie um perfil com nome/apelido. O botão com o nome no cabeçalho permite trocar de jogador e renomear o perfil atual. É possível guardar até dez perfis neste navegador.
+
+Cada perfil tem moedas, roupas, pets, diário, coleção, missões, preferências e progresso próprios. Ao trocar, o jogo salva o jogador anterior, encerra minigames/cuidados e apaga a gravação temporária de voz, antes de carregar o novo. Cada aba mantém sua própria escolha em `sessionStorage`; abrir outro jogador em outra aba não redireciona os autosaves.
+
+O save anterior é preservado como **Meu Caju**, sem apagar ou mover sua chave original. São perfis **locais, sem senha**: não são contas com autenticação e não há sincronização entre dispositivos. Qualquer pessoa com acesso a este navegador pode selecionar os perfis disponíveis. Para transferir seu progresso, exporte o backup do jogador escolhido e importe-o no perfil desejado do outro aparelho. Importar altera somente o jogador atual.
+
 ## Salvamento, exportação e importação
 
-A chave continua `caju-biblioteca-v1`, preservando os saves anteriores e adicionando valores padrão para recursos novos. Tudo é guardado em `localStorage`, exceto gravações e processos de áudio. Sem sincronização automática: cada navegador/origem tem seu progresso.
+O perfil Meu Caju conserva a chave `caju-biblioteca-v1`. Novos jogadores usam `caju-biblioteca-v1:player:<id>`, e a lista de perfis usa `caju-biblioteca-v1:profiles`. Valores padrão são adicionados aos saves antigos para recursos novos. Tudo é guardado em `localStorage`, exceto gravações e processos de áudio. Sem sincronização automática: cada navegador/origem tem seu progresso.
 
-Em **Opções → Exportar progresso**, baixe `caju-progresso.txt`. **Importar progresso** valida formato e tamanho (até 2 MB), pede confirmação e substitui o estado. Faça um backup antes de limpar dados do navegador ou transferir de aparelho. Arquivos inválidos não substituem o save. Erros de armazenamento são informados; o jogo ainda pode continuar na memória. O relógio local pode alterar eventos e progressão: não há validação por servidor nem proteção competitiva contra edição de saves.
+Em **Opções → Exportar progresso**, baixe `caju-NOME-progresso.txt`. **Importar progresso** valida formato e tamanho (até 2 MB), pede confirmação e substitui o estado. Faça um backup antes de limpar dados do navegador ou transferir de aparelho. Arquivos inválidos não substituem o save. Erros de armazenamento são informados; o jogo ainda pode continuar na memória. O relógio local pode alterar eventos e progressão: não há validação por servidor nem proteção competitiva contra edição de saves.
 
 ## Organização dos arquivos
 
@@ -85,6 +93,7 @@ Em **Opções → Exportar progresso**, baixe `caju-progresso.txt`. **Importar p
 - `js/app.js`: integração e eventos principais.
 - `js/character.js`, `js/wardrobe.js`, `js/care.js`: personagem, roupas vetoriais, expressões e cuidados.
 - `js/attributes.js`, `js/save.js`: passagem do tempo, limites, normalização e backup.
+- `js/profiles.js`: cadastro, seleção e renomeação de jogadores, isolamento por chave e seleção por aba.
 - `js/shop.js`, `js/catalog.js`: catálogo básico, suprimentos e disponibilidade por calendário.
 - `js/pets.js`: regras de adoção, alimentação e roupas dos pets.
 - `js/progression.js`: missões, medalhas, eventos, diário, coleção e idade.
@@ -121,10 +130,11 @@ python3 tests/browser_smoke.py
 python3 tests/care_browser.py
 python3 tests/expansion_browser.py
 python3 tests/compat_browser.py
+python3 tests/profiles_browser.py
 ```
 
 Os testes de navegador usam `/usr/bin/chromium`. A expansão verifica os quatro jogos novos, pets, favoritos, coleção, missões, importação/exportação, áudio real com dispositivo simulado e reabertura offline. Não precisa instalar Playwright para jogar.
 
 ## Simplificações
 
-Pets são placeholders vetoriais; roupas são camadas SVG e decorações são símbolos. Envelhecimento é visual e reversível, não um sistema biológico. As novas corridas e pesca usam mecânica 2D simples, e páginas são reconstruídas por troca de fragmentos. Eventos são uma rotação mensal local, sem servidor. Voz aguda também acelera a fala; não há reconhecimento de palavras nem envio de áudio. A instalação PWA e recursos de áudio variam por navegador. A torre de livros com física não foi implementada; há nove outros minigames.
+Pets são placeholders vetoriais; roupas são camadas SVG e decorações são símbolos. Envelhecimento é visual e reversível, não um sistema biológico. As novas corridas e pesca usam mecânica 2D simples, e páginas são reconstruídas por troca de fragmentos. Eventos são uma rotação mensal local, sem servidor. Voz aguda também acelera a fala; não há reconhecimento de palavras nem envio de áudio. Perfis locais não fornecem privacidade por senha ou saves na nuvem. A instalação PWA e recursos de áudio variam por navegador. A torre de livros com física não foi implementada; há nove outros minigames.
