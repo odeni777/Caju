@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import{freshState,normalize,localDay}from'../js/save.js';
+import{advance,changeStats,mood,ritual}from'../js/attributes.js';
+import{purchase,equip,items,foods}from'../js/shop.js';
+import{books}from'../js/books.js';
+test('ausência limitada a quatro horas, sem morte e sem ganhos ilimitados',()=>{const now=Date.now(),s=freshState(now-7*86400000);advance(s,now);assert.equal(s.stats.food,78-240*.12);assert.equal(s.coins,360);assert.ok(s.stats.health>=0);assert.equal(s.lastSeen,now);});
+test('sono restaura energia e conserva limites',()=>{const s=freshState(1000);s.sleeping=true;s.stats.energy=0;advance(s,3601000);assert.equal(s.stats.energy,78);changeStats(s,{energy:999,health:-999});assert.equal(s.stats.energy,100);assert.equal(mood(s).id,'sleeping');s.sleeping=false;assert.equal(mood(s).id,'sick');changeStats(s,foods.find(x=>x.id==='tea').effects);assert.equal(s.stats.health,100);});
+test('compra não duplica nem gasta moeda errada; peças equipam e saem',()=>{const s=freshState(),item=items.find(x=>x.id==='bow');assert.ok(purchase(s,item));assert.equal(s.coins,175);assert.equal(purchase(s,item),false);equip(s,item);assert.equal(s.equipped.neck,'bow');equip(s,item);assert.equal(s.equipped.neck,undefined);s.markers=0;assert.equal(purchase(s,items.find(x=>x.rare)),false);assert.equal(s.coins,175);});
+test('rituais dão um único marcador por dia e reiniciam na data local',()=>{const now=new Date(2026,9,22,12).getTime(),s=freshState(now);ritual(s,'feed');ritual(s,'bath');assert.equal(ritual(s,'play'),true);assert.equal(s.markers,4);ritual(s,'play');assert.equal(s.markers,4);advance(s,now+86400000);assert.deepEqual(s.rituals,[]);assert.equal(s.dailyClaimed,false);assert.equal(s.day,localDay(now+86400000));});
+test('save inválido recupera defaults e limita valores',()=>{const s=normalize({version:1,coins:-10,markers:Infinity,stats:{food:900,health:NaN},owned:['bow',null,'bow'],lastSeen:Infinity,equipped:{constructor:'bad',neck:'bow'}});assert.equal(s.coins,0);assert.equal(s.markers,3);assert.equal(s.stats.food,100);assert.equal(s.stats.health,96);assert.deepEqual(s.owned,['bow']);assert.deepEqual(s.equipped,{neck:'bow'});});
+test('30 livros com alternativas únicas e resposta válida',()=>{assert.ok(books.length>=30);assert.equal(new Set(books.map(b=>b.title)).size,books.length);for(const b of books){assert.equal(new Set(b.options).size,4);assert.ok(b.options.includes(b.answer));assert.ok(b.synopsis.length>40);assert.ok(b.explanation.length>20);}});
